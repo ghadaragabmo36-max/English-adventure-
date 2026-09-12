@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>مغامرة الإنجليزي — English Adventure</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F5E3C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="English Adventure">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF8E9;
+    --forest-dark:#1F5E3C;
+    --forest:#3E9264;
+    --leaf:#8FD19E;
+    --sun:#FFC94A;
+    --sun-deep:#F2A007;
+    --sky:#6FC3E8;
+    --coral:#FF7A63;
+    --ink:#20321F;
+    --paper:#FFFFFF;
+    --shadow: 0 6px 0 rgba(0,0,0,0.12);
+    --radius: 22px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Tajawal', sans-serif;
+    background: radial-gradient(circle at 20% 0%, #E9FBEF 0%, var(--cream) 55%);
+    color:var(--ink);
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  .eng{font-family:'Baloo 2', 'Tajawal', sans-serif;}
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    position:relative;
+    padding-bottom:26px;
+  }
+  .screen{display:none; animation: fadeIn .35s ease;}
+  .screen.active{display:block;}
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px 8px;
+  }
+  .stat-pill{
+    display:flex; align-items:center; gap:6px;
+    background:var(--paper); border-radius:999px;
+    padding:6px 12px; font-weight:700; font-size:14px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.08);
+  }
+  .stat-row{display:flex; gap:8px;}
+  .back-btn{
+    background:var(--paper); border:none; border-radius:14px;
+    width:40px; height:40px; font-size:18px; cursor:pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+  }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    border:none; border-radius:18px; cursor:pointer;
+    font-family:'Tajawal',sans-serif; font-weight:800; font-size:16px;
+    padding:14px 18px; box-shadow: var(--shadow);
+    transition: transform .08s ease;
+    color:white;
+  }
+  .btn:active{ transform: translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  .btn-forest{background:linear-gradient(180deg, var(--forest) 0%, var(--forest-dark) 100%);}
+  .btn-sun{background:linear-gradient(180deg, #FFD873 0%, var(--sun-deep) 100%); color:#4A2E00;}
+  .btn-sky{background:linear-gradient(180deg, #8ED8F5 0%, var(--sky) 100%); color:#08344A;}
+  .btn-coral{background:linear-gradient(180deg, #FF9A87 0%, var(--coral) 100%);}
+  .btn-outline{background:var(--paper); color:var(--ink); box-shadow:0 3px 0 rgba(0,0,0,.1);}
+  .btn-wide{width:100%; display:block; margin:8px 0;}
+  .btn[disabled]{opacity:.4; cursor:not-allowed; transform:none;}
+
+  /* ---------- home ---------- */
+  .hero{
+    text-align:center; padding:6px 20px 4px;
+  }
+  .buddy{font-size:64px; display:block; margin:6px auto;}
+  .hero h1{font-size:22px; margin:4px 0 2px;}
+  .hero p{margin:0; color:#5b6a58; font-size:14px;}
+  .home-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:12px;
+    padding:18px 16px;
+  }
+  .tile{
+    background:var(--paper); border-radius:20px; padding:16px 10px;
+    text-align:center; box-shadow:0 4px 0 rgba(0,0,0,.08);
+    cursor:pointer; border:3px solid transparent;
+  }
+  .tile:active{ transform:scale(.96); }
+  .tile .ic{font-size:34px; display:block; margin-bottom:6px;}
+  .tile .lb{font-weight:800; font-size:14px;}
+
+  /* ---------- map ---------- */
+  .map-wrap{padding:10px 18px 20px;}
+  .world-card{
+    background:linear-gradient(160deg,#DFF6E4,#C9EFD1);
+    border-radius:24px; padding:14px; margin-bottom:16px;
+    box-shadow:0 4px 0 rgba(0,0,0,.06);
+  }
+  .world-head{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .world-head .wic{font-size:30px;}
+  .world-head .wname{font-weight:800; font-size:16px;}
+  .stage-row{display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;}
+  .stage-node{
+    min-width:64px; height:64px; border-radius:50%;
+    background:var(--paper); display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:20px; position:relative; flex-shrink:0;
+    box-shadow:0 3px 0 rgba(0,0,0,.1); cursor:pointer; border:3px solid transparent;
+  }
+  .stage-node.done{background:linear-gradient(180deg,#FFE49A,var(--sun)); border-color:var(--sun-deep);}
+  .stage-node.locked{opacity:.45; cursor:not-allowed;}
+  .stage-node .star-badge{position:absolute; top:-8px; left:-6px; font-size:14px;}
+
+  /* ---------- word card ---------- */
+  .word-card{
+    background:var(--paper); border-radius:28px; margin:14px 18px;
+    padding:26px 18px; text-align:center; box-shadow:0 5px 0 rgba(0,0,0,.08);
+  }
+  .word-emoji{font-size:76px; display:block; margin-bottom:10px;}
+  .word-en{font-size:30px; font-weight:800; letter-spacing:1px; margin-bottom:4px;}
+  .word-ar{color:#6b7a68; font-size:16px; margin-bottom:14px;}
+  .speak-btn{
+    background:var(--sky); border:none; border-radius:50%;
+    width:56px; height:56px; font-size:22px; cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.1);
+  }
+  .progress-dots{display:flex; justify-content:center; gap:6px; margin:10px 0 2px;}
+  .dot{width:9px; height:9px; border-radius:50%; background:#E3E7DE;}
+  .dot.on{background:var(--forest);}
+
+  /* ---------- game area ---------- */
+  .game-title{ text-align:center; font-weight:800; font-size:17px; margin:8px 0 2px;}
+  .game-sub{ text-align:center; color:#6b7a68; font-size:13px; margin-bottom:10px;}
+  .prompt-box{
+    background:var(--paper); border-radius:22px; margin:10px 18px;
+    padding:20px; text-align:center; box-shadow:0 4px 0 rgba(0,0,0,.08);
+  }
+  .prompt-word{font-size:26px; font-weight:800; margin-bottom:6px;}
+  .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:10px 18px;}
+  .choice-card{
+    background:var(--paper); border-radius:20px; padding:18px 8px;
+    text-align:center; font-size:44px; cursor:pointer;
+    box-shadow:0 4px 0 rgba(0,0,0,.08); border:3px solid transparent;
+  }
+  .choice-card:active{transform:scale(.95);}
+  .choice-card.correct{border-color:var(--forest); background:#E7FBEC;}
+  .choice-card.wrong{border-color:var(--coral); background:#FFEDEA;}
+  .feedback{
+    text-align:center; font-weight:800; font-size:18px; min-height:26px; margin:6px 0;
+  }
+  .feedback.good{color:var(--forest-dark);}
+  .feedback.bad{color:var(--coral);}
+
+  .match-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px 18px;}
+  .match-item{
+    background:var(--paper); border-radius:16px; padding:14px 8px; text-align:center;
+    font-weight:700; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.08);
+    border:3px solid transparent; font-size:20px;
+  }
+  .match-item.sel{border-color:var(--sky);}
+  .match-item.done{background:#E7FBEC; border-color:var(--forest); opacity:.6; cursor:default;}
+
+  .letters-row{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:10px 18px;}
+  .letter-chip{
+    background:var(--sun); border-radius:12px; padding:10px 14px;
+    font-weight:800; font-size:20px; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.1);
+  }
+  .letter-chip.used{opacity:.3; cursor:not-allowed;}
+  .answer-slot{
+    min-height:52px; border:3px dashed #cfd8cb; border-radius:14px;
+    margin:6px 18px; display:flex; align-items:center; justify-content:center;
+    gap:6px; font-size:22px; font-weight:800; flex-wrap:wrap; padding:6px;
+  }
+
+  .sentence-row{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:10px 18px;}
+  .word-chip{
+    background:var(--paper); border-radius:12px; padding:10px 14px;
+    font-weight:800; font-size:17px; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.08);
+  }
+  .word-chip.used{opacity:.3; cursor:not-allowed;}
+
+  /* ---------- profile/avatar ---------- */
+  .avatar-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:6px 18px;}
+  .avatar-opt{
+    font-size:34px; text-align:center; background:var(--paper); border-radius:16px;
+    padding:10px 0; cursor:pointer; border:3px solid transparent; box-shadow:0 3px 0 rgba(0,0,0,.08);
+  }
+  .avatar-opt.sel{border-color:var(--sun-deep); background:#FFF6DD;}
+  .field{
+    background:var(--paper); border:none; border-radius:14px; padding:14px;
+    width:100%; font-family:'Tajawal',sans-serif; font-size:16px; margin:8px 0;
+    box-shadow: inset 0 0 0 2px #eee;
+  }
+  .level-row{display:flex; gap:8px;}
+  .level-opt{
+    flex:1; text-align:center; background:var(--paper); border-radius:14px;
+    padding:12px 4px; font-weight:800; cursor:pointer; border:3px solid transparent;
+    box-shadow:0 3px 0 rgba(0,0,0,.08); font-size:13px;
+  }
+  .level-opt.sel{border-color:var(--forest); background:#EAFBEE;}
+
+  /* ---------- progress / achievements ---------- */
+  .section-card{
+    background:var(--paper); border-radius:20px; margin:12px 18px; padding:16px;
+    box-shadow:0 4px 0 rgba(0,0,0,.06);
+  }
+  .prog-line{display:flex; justify-content:space-between; align-items:center; margin:10px 0;}
+  .prog-label{font-weight:700; font-size:14px;}
+  .bar-bg{background:#EEF2EA; border-radius:999px; height:12px; width:100%; overflow:hidden;}
+  .bar-fill{background:linear-gradient(90deg,var(--leaf),var(--forest)); height:100%; border-radius:999px;}
+  .badge-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .badge{text-align:center; font-size:30px; opacity:.25;}
+  .badge.earned{opacity:1;}
+  .badge .bl{display:block; font-size:10px; font-weight:700; margin-top:2px;}
+
+  /* ---------- buddy popup ---------- */
+  .buddy-bubble{
+    background:#FFF6DD; border:2px solid var(--sun-deep); border-radius:18px;
+    margin:8px 18px; padding:12px 14px; font-size:14px; display:flex; gap:10px; align-items:flex-start;
+  }
+  .buddy-bubble .bic{font-size:28px;}
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(20,30,20,.55);
+    display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-card{
+    background:var(--paper); border-radius:26px; padding:28px 20px; text-align:center;
+    max-width:340px; width:100%; box-shadow:0 10px 0 rgba(0,0,0,.15);
+  }
+  .modal-emoji{font-size:60px; display:block; margin-bottom:6px;}
+  .reward-row{display:flex; justify-content:center; gap:16px; margin:14px 0; font-weight:800; font-size:18px;}
+
+  .parent-lock{ text-align:center; padding:30px 20px; color:#6b7a68; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   DATA
+   ========================================================= */
+const VOCAB = {
+  animals: {icon:"🌳", nameAr:"غابة الحيوانات", words:[
+    {en:"Cat", ar:"قطة", emoji:"🐱"},
+    {en:"Dog", ar:"كلب", emoji:"🐶"},
+    {en:"Bird", ar:"عصفور", emoji:"🐦"},
+    {en:"Lion", ar:"أسد", emoji:"🦁"},
+    {en:"Elephant", ar:"فيل", emoji:"🐘"},
+    {en:"Fish", ar:"سمكة", emoji:"🐟"},
+  ]},
+  colors: {icon:"🎨", nameAr:"مدينة الألوان", words:[
+    {en:"Red", ar:"أحمر", emoji:"🔴"},
+    {en:"Blue", ar:"أزرق", emoji:"🔵"},
+    {en:"Green", ar:"أخضر", emoji:"🟢"},
+    {en:"Yellow", ar:"أصفر", emoji:"🟡"},
+    {en:"Black", ar:"أسود", emoji:"⚫"},
+    {en:"White", ar:"أبيض", emoji:"⚪"},
+  ]},
+  numbers: {icon:"🔢", nameAr:"جزيرة الأرقام", words:[
+    {en:"One", ar:"واحد", emoji:"1️⃣"},
+    {en:"Two", ar:"اثنان", emoji:"2️⃣"},
+    {en:"Three", ar:"ثلاثة", emoji:"3️⃣"},
+    {en:"Four", ar:"أربعة", emoji:"4️⃣"},
+    {en:"Five", ar:"خمسة", emoji:"5️⃣"},
+  ]},
+  food: {icon:"🍎", nameAr:"مدينة الطعام", words:[
+    {en:"Apple", ar:"تفاحة", emoji:"🍎"},
+    {en:"Banana", ar:"موزة", emoji:"🍌"},
+    {en:"Milk", ar:"حليب", emoji:"🥛"},
+    {en:"Bread", ar:"خبز", emoji:"🍞"},
+    {en:"Water", ar:"ماء", emoji:"💧"},
+  ]},
+  school: {icon:"🏫", nameAr:"مدرستي", words:[
+    {en:"Book", ar:"كتاب", emoji:"📖"},
+    {en:"Pen", ar:"قلم", emoji:"✏️"},
+    {en:"Bag", ar:"حقيبة", emoji:"🎒"},
+    {en:"Teacher", ar:"معلمة", emoji:"👩‍🏫"},
+  ]},
+  family: {icon:"🏠", nameAr:"بيتي", words:[
+    {en:"Father", ar:"أب", emoji:"👨"},
+    {en:"Mother", ar:"أم", emoji:"👩"},
+    {en:"Brother", ar:"أخ", emoji:"👦"},
+    {en:"Sister", ar:"أخت", emoji:"👧"},
+  ]},
+};
+
+const WORLD_ORDER = ["animals","colors","numbers","food","school","family"];
+const GAME_TYPES = ["choose","listen","match","spell","sentence"];
+const AVATARS = ["🦊","🐼","🐵","🦄","🐻","🐰","🐯","🐧"];
+const BADGE_META = {
+  animals:{ic:"🐾", label:"عالم الحيوانات"},
+  colors:{ic:"🎨", label:"عالم الألوان"},
+  numbers:{ic:"🔢", label:"عالم الأرقام"},
+  food:{ic:"🍎", label:"عالم الطعام"},
+  school:{ic:"🏫", label:"عالم المدرسة"},
+  family:{ic:"🏠", label:"عالم العائلة"},
+};
+
+const SENTENCES = [
+  {words:["I","am","happy"], ar:"أنا سعيد"},
+  {words:["I","have","a","book"], ar:"لدي كتاب"},
+  {words:["This","is","a","cat"], ar:"هذه قطة"},
+  {words:["I","like","apples"], ar:"أحب التفاح"},
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let state = {
+  screen: "loading",
+  profile: null, // {name, avatar, level}
+  progress: {
+    stars:0, coins:0, badges:[], stageStars:{}, // stageKey -> stars(1-3)
+    wordStats:{}, // word -> {seen, wrong}
+    minutesPlayed:0,
+  },
+  currentWorld: null,
+  currentStageIdx: 0,
+  wordIdx: 0,
+  gameData: null,
+  parentUnlocked: false,
+  canInstall: false,
+};
+
+function render(){ document.getElementById("app").innerHTML = SCREENS[state.screen](); afterRender(); }
+
+let cachedEnVoice = null;
+function loadVoice(){
+  try{
+    const voices = speechSynthesis.getVoices();
+    cachedEnVoice = voices.find(v=>v.lang && v.lang.toLowerCase().startsWith("en")) || voices[0] || null;
+  }catch(e){}
+}
+if('speechSynthesis' in window){
+  loadVoice();
+  speechSynthesis.onvoiceschanged = loadVoice;
+}
+
+function speak(text){
+  if(!('speechSynthesis' in window)){
+    console.warn("Speech synthesis not supported in this browser");
+    return;
+  }
+  const doSpeak = () => {
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US"; u.rate = 0.85; u.pitch = 1.05;
+      if(cachedEnVoice) u.voice = cachedEnVoice;
+      speechSynthesis.speak(u);
+    }catch(e){ console.warn("speak failed", e); }
+  };
+  try{
+    if(speechSynthesis.speaking || speechSynthesis.pending){
+      speechSynthesis.cancel();
+      setTimeout(doSpeak, 60);
+    } else {
+      doSpeak();
+    }
+  }catch(e){ doSpeak(); }
+}
+
+function stageKey(world, idx){ return world+"-"+idx; }
+
+function recordWord(en, wrong){
+  const w = state.progress.wordStats[en] || {seen:0, wrong:0};
+  w.seen++; if(wrong) w.wrong++;
+  state.progress.wordStats[en] = w;
+}
+
+function weakWords(){
+  const list = [];
+  for(const w in state.progress.wordStats){
+    const s = state.progress.wordStats[w];
+    if(s.wrong >= 2) list.push(w);
+  }
+  return list;
+}
+
+async function persist(){
+  try{
+    await window.storage.set("profile", JSON.stringify(state.profile), false);
+    await window.storage.set("progress", JSON.stringify(state.progress), false);
+  }catch(e){ /* best effort */ }
+}
+
+async function loadPersisted(){
+  try{
+    const p = await window.storage.get("profile", false);
+    const pr = await window.storage.get("progress", false);
+    if(p) state.profile = JSON.parse(p.value);
+    if(pr) state.progress = JSON.parse(pr.value);
+  }catch(e){ /* no saved data yet */ }
+}
+
+/* =========================================================
+   SCREENS
+   ========================================================= */
+const SCREENS = {};
+
+SCREENS.loading = () => `
+  <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
+    <span style="font-size:60px;">🦊</span>
+    <p style="font-weight:800;">جارِ تحميل المغامرة...</p>
+  </div>`;
+
+SCREENS.createProfile = () => `
+  <div class="hero">
+    <span class="buddy">🦊</span>
+    <h1>مرحبًا بك في مغامرة الإنجليزي!</h1>
+    <p>لنجهّز شخصيتك قبل أن ننطلق في المغامرة</p>
+  </div>
+  <div style="padding:0 18px;">
+    <input id="nameInput" class="field" placeholder="ما اسمك؟" value="${state.profile?.name||''}">
+    <p style="font-weight:800; margin:14px 0 4px;">اختر شخصيتك</p>
+    <div class="avatar-grid" id="avatarGrid">
+      ${AVATARS.map(a=>`<div class="avatar-opt ${state.tmpAvatar===a?'sel':''}" data-av="${a}">${a}</div>`).join('')}
+    </div>
+    <p style="font-weight:800; margin:16px 0 4px;">اختر مستواك</p>
+    <div class="level-row" id="levelRow">
+      ${["مبتدئ","أساسي","متوسط"].map((l,i)=>`<div class="level-opt ${state.tmpLevel===i?'sel':''}" data-lv="${i}">${l}</div>`).join('')}
+    </div>
+    <button class="btn btn-sky btn-wide" id="soundTestBtn" style="margin-top:16px;">🔊 اضغط لتجربة الصوت</button>
+    <p id="soundHint" style="text-align:center; color:#6b7a68; font-size:12px; margin:4px 0 0;">إن لم تسمع صوتًا، افتح هذا الملف مباشرة في متصفح Chrome أو Safari (وليس داخل معاينة مضمّنة)</p>
+    <button class="btn btn-forest btn-wide" id="startBtn" style="margin-top:14px;">ابدأ المغامرة 🚀</button>
+  </div>
+`;
+
+SCREENS.home = () => `
+  <div class="topbar">
+    <div class="stat-row">
+      <div class="stat-pill">⭐ ${state.progress.stars}</div>
+      <div class="stat-pill">🪙 ${state.progress.coins}</div>
+    </div>
+    <button class="back-btn" data-nav="profile">${state.profile.avatar}</button>
+  </div>
+  <div class="hero">
+    <span class="buddy">🦊</span>
+    <h1>أهلًا ${state.profile.name}!</h1>
+    <p>جاهز لمغامرة إنجليزية جديدة اليوم؟</p>
+  </div>
+  ${state.canInstall ? `
+  <div style="padding:0 18px;">
+    <button class="btn btn-sun btn-wide" id="installBtn">📲 ثبّت التطبيق على جهازك</button>
+  </div>` : (isIOS() && !isStandalone() ? `
+  <div class="buddy-bubble">
+    <span class="bic">📲</span>
+    <span>لتثبيت التطبيق على آيفون: اضغط زر المشاركة ⬆️ ثم "إضافة إلى الشاشة الرئيسية"</span>
+  </div>` : '')}
+  <div class="home-grid">
+    <div class="tile" data-nav="map"><span class="ic">🗺️</span><span class="lb">خريطة المغامرة</span></div>
+    <div class="tile" data-nav="play"><span class="ic">🎮</span><span class="lb">العب الآن</span></div>
+    <div class="tile" data-nav="progress"><span class="ic">⭐</span><span class="lb">تقدمي</span></div>
+    <div class="tile" data-nav="achievements"><span class="ic">🏆</span><span class="lb">الإنجازات</span></div>
+    <div class="tile" data-nav="rewards"><span class="ic">🎒</span><span class="lb">مكافآتي</span></div>
+    <div class="tile" data-nav="profile"><span class="ic">👤</span><span class="lb">ملفي الشخصي</span></div>
+  </div>
+  <div class="buddy-bubble">
+    <span class="bic">🦊</span>
+    <span>${buddyTip()}</span>
+  </div>
+`;
+
+function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+
+function buddyTip(){
+  const w = weakWords();
+  if(w.length) return `لاحظت أنك تحتاج مراجعة كلمة "${w[0]}"! هيا نلعب معًا لنتقنها 💪`;
+  return "اضغط على «خريطة المغامرة» لتكتشف عالمًا جديدًا اليوم!";
+}
+
+SCREENS.map = () => `
+  <div class="topbar">
+    <button class="back-btn" data-nav="home">➜</button>
+    <div class="stat-row">
+      <div class="stat-pill">⭐ ${state.progress.stars}</div>
+      <div class="stat-pill">🪙 ${state.progress.coins}</div>
+    </div>
+  </div>
+  <div class="hero"><h1>خريطة المغامرة</h1><p>أكمل كل عالم لفتح ما بعده</p></div>
+  <div class="map-wrap">
+    ${WORLD_ORDER.map((wk,wi)=>{
+      const world = VOCAB[wk];
+      const prevDone = wi===0 || isWorldDone(WORLD_ORDER[wi-1]);
+      return `
+      <div class="world-card">
+        <div class="world-head">
+          <span class="wic">${world.icon}</span>
+          <span class="wname">${world.nameAr} <span class="eng">(World ${wi+1})</span></span>
+        </div>
+        <div class="stage-row">
+          ${world.words.map((_,si)=>{
+            const key = stageKey(wk,si);
+            const done = !!state.progress.stageStars[key];
+            const locked = !prevDone || (si>0 && !state.progress.stageStars[stageKey(wk,si-1)]);
+            const stars = state.progress.stageStars[key]||0;
+            return `<div class="stage-node ${done?'done':''} ${locked?'locked':''}" ${locked?'':`data-world="${wk}" data-stage="${si}"`}>
+              ${locked ? '🔒' : (si+1)}
+              ${done?`<span class="star-badge">${'⭐'.repeat(stars)}</span>`:''}
+            </div>`;
+          }).join('')}
+          <div class="stage-node ${allStagesDone(wk)?'':'locked'}" ${allStagesDone(wk)?`data-world="${wk}" data-review="1"`:''}>
+            📚
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+`;
+
+function allStagesDone(wk){ return VOCAB[wk].words.every((_,si)=>!!state.progress.stageStars[stageKey(wk,si)]); }
+function isWorldDone(wk){ return allStagesDone(wk); }
+
+SCREENS.play = () => {
+  // quick-play: pick a random unlocked stage
+  for(const wk of WORLD_ORDER){
+    for(let si=0; si<VOCAB[wk].words.length; si++){
+      const key = stageKey(wk,si);
+      if(!state.progress.stageStars[key]){
+        return startStageScreen(wk, si);
+      }
+    }
+  }
+  return startStageScreen(WORLD_ORDER[0], 0);
+};
+
+function startStageScreen(wk, si){
+  state.currentWorld = wk; state.currentStageIdx = si; state.wordIdx = 0;
+  return renderLearnWord();
+}
+
+function renderLearnWord(){
+  const world = VOCAB[state.currentWorld];
+  const word = world.words[state.currentStageIdx];
+  const total = 1;
+  return `
+  <div class="topbar">
+    <button class="back-btn" data-nav="map">➜</button>
+    <div class="stat-row"><div class="stat-pill">⭐ ${state.progress.stars}</div><div class="stat-pill">🪙 ${state.progress.coins}</div></div>
+  </div>
+  <div class="game-title">${world.nameAr}</div>
+  <div class="game-sub">تعلّم كلمة جديدة</div>
+  <div class="word-card">
+    <span class="word-emoji">${word.emoji}</span>
+    <div class="word-en eng">${word.en}</div>
+    <div class="word-ar">${word.ar}</div>
+    <button class="speak-btn" id="speakBtn">🔊</button>
+  </div>
+  <button class="btn btn-forest btn-wide" style="margin:0 18px; width:calc(100% - 36px);" id="toGameBtn">لنلعب! 🎮</button>
+  `;
+}
+
+function pickGameType(wk, si){
+  // deterministic-ish rotation so the same word isn't always the same game
+  const idx = (WORLD_ORDER.indexOf(wk)*7 + si) % GAME_TYPES.length;
+  return GAME_TYPES[idx];
+}
+
+function buildGame(){
+  const world = VOCAB[state.currentWorld];
+  const target = world.words[state.currentStageIdx];
+  const type = pickGameType(state.currentWorld, state.currentStageIdx);
+  const pool = world.words.filter(w=>w.en!==target.en);
+  shuffle(pool);
+  const distractors = pool.slice(0,3);
+  state.gameData = { type, target, options: shuffle([target, ...distractors]), attempts:0, correct:false };
+  if(type==="spell"){
+    const letters = target.en.toUpperCase().split("");
+    state.gameData.letters = shuffle(letters.map((l,i)=>({l, id:i, used:false})));
+    state.gameData.slots = [];
+  }
+  if(type==="sentence"){
+    const s = SENTENCES[(WORLD_ORDER.indexOf(state.currentWorld)+state.currentStageIdx) % SENTENCES.length];
+    state.gameData.sentence = s;
+    state.gameData.chips = shuffle(s.words.map((w,i)=>({w,id:i,used:false})));
+    state.gameData.slots = [];
+  }
+  if(type==="match"){
+    const four = shuffle([target, ...distractors]);
+    state.gameData.matchWords = shuffle(four.map(w=>({...w, id:"w"+w.en})));
+    state.gameData.matchEmojis = shuffle(four.map(w=>({...w, id:"e"+w.en})));
+    state.gameData.selWord = null; state.gameData.selEmoji = null; state.gameData.matched = [];
+  }
+}
+
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+SCREENS.game = () => {
+  const g = state.gameData;
+  if(!g) { buildGame(); }
+  const gd = state.gameData;
+  const world = VOCAB[state.currentWorld];
+  const header = `
+  <div class="topbar">
+    <button class="back-btn" data-nav="map">➜</button>
+    <div class="stat-row"><div class="stat-pill">⭐ ${state.progress.stars}</div><div class="stat-pill">🪙 ${state.progress.coins}</div></div>
+  </div>`;
+
+  if(gd.type==="choose"){
+    return header + `
+      <div class="game-title">🖼️ اختر الصورة الصحيحة</div>
+      <div class="game-sub">Choose the correct picture</div>
+      <div class="prompt-box"><div class="prompt-word eng">${gd.target.en}</div>
+        <button class="speak-btn" id="speakBtn">🔊</button>
+      </div>
+      <div class="choice-grid">
+        ${gd.options.map(o=>`<div class="choice-card" data-ans="${o.en}">${o.emoji}</div>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+    `;
+  }
+  if(gd.type==="listen"){
+    return header + `
+      <div class="game-title">🎧 لعبة الاستماع</div>
+      <div class="game-sub">اسمع الكلمة ثم اختر الصورة الصحيحة</div>
+      <div class="prompt-box">
+        <button class="speak-btn" id="speakBtn" style="width:74px; height:74px; font-size:30px;">🔊</button>
+        <p style="margin-top:8px; color:#6b7a68;">اضغط للاستماع</p>
+      </div>
+      <div class="choice-grid">
+        ${gd.options.map(o=>`<div class="choice-card" data-ans="${o.en}">${o.emoji}</div>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+    `;
+  }
+  if(gd.type==="match"){
+    return header + `
+      <div class="game-title">🔗 لعبة التوصيل</div>
+      <div class="game-sub">وصّل الكلمة بالصورة الصحيحة</div>
+      <div class="match-grid">
+        ${gd.matchWords.map(w=>`<div class="match-item eng ${gd.matched.includes(w.en)?'done':(gd.selWord===w.en?'sel':'')}" data-mw="${w.en}">${w.en}</div>`).join('')}
+        ${gd.matchEmojis.map(w=>`<div class="match-item ${gd.matched.includes(w.en)?'done':(gd.selEmoji===w.en?'sel':'')}" data-me="${w.en}">${w.emoji}</div>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+    `;
+  }
+  if(gd.type==="spell"){
+    return header + `
+      <div class="game-title">🔤 هجّئ الكلمة</div>
+      <div class="game-sub">${gd.target.emoji} استمع ورتّب الحروف</div>
+      <div style="text-align:center;"><button class="speak-btn" id="speakBtn">🔊</button></div>
+      <div class="answer-slot" id="answerSlot">${gd.slots.map(s=>`<span>${s.l}</span>`).join('')}</div>
+      <div class="letters-row">
+        ${gd.letters.map(l=>`<div class="letter-chip ${l.used?'used':''}" data-lid="${l.id}">${l.l}</div>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+    `;
+  }
+  if(gd.type==="sentence"){
+    return header + `
+      <div class="game-title">📝 كوّن الجملة</div>
+      <div class="game-sub">${gd.sentence.ar}</div>
+      <div class="answer-slot" id="answerSlot">${gd.slots.map(s=>`<span>${s.w}</span>`).join(' ')}</div>
+      <div class="sentence-row">
+        ${gd.chips.map(c=>`<div class="word-chip ${c.used?'used':''}" data-cid="${c.id}">${c.w}</div>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+    `;
+  }
+  return header;
+};
+
+SCREENS.stageComplete = () => {
+  const g = state.gameData;
+  const stars = g.attempts<=1 ? 3 : (g.attempts===2 ? 2 : 1);
+  return `
+  <div class="modal-overlay">
+    <div class="modal-card">
+      <span class="modal-emoji">🎉</span>
+      <h2>أحسنت يا بطل!</h2>
+      <p>لقد أتقنت كلمة <span class="eng" style="font-weight:800;">${g.target.en}</span></p>
+      <div style="font-size:26px; margin:8px 0;">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div class="reward-row"><span>🪙 +${5*stars}</span><span>⭐ +${stars}</span></div>
+      <button class="btn btn-forest btn-wide" id="continueBtn">متابعة</button>
+    </div>
+  </div>` + SCREENS.map();
+};
+
+SCREENS.progress = () => {
+  const totalWords = WORLD_ORDER.reduce((s,w)=>s+VOCAB[w].words.length,0);
+  const learned = Object.keys(state.progress.wordStats).length;
+  const totalStages = totalWords;
+  const doneStages = Object.keys(state.progress.stageStars).length;
+  const w = weakWords();
+  return `
+  <div class="topbar"><button class="back-btn" data-nav="home">➜</button><div></div></div>
+  <div class="hero"><h1>⭐ تقدمي</h1></div>
+  <div class="section-card">
+    <div class="prog-line"><span class="prog-label">الكلمات المتعلَّمة</span><span>${learned} / ${totalWords}</span></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${(learned/totalWords*100)||0}%"></div></div>
+    <div class="prog-line" style="margin-top:16px;"><span class="prog-label">المراحل المكتملة</span><span>${doneStages} / ${totalStages}</span></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${(doneStages/totalStages*100)||0}%"></div></div>
+    <div class="prog-line" style="margin-top:16px;"><span class="prog-label">🪙 العملات</span><span>${state.progress.coins}</span></div>
+    <div class="prog-line"><span class="prog-label">⭐ النجوم</span><span>${state.progress.stars}</span></div>
+  </div>
+  <div class="section-card">
+    <p style="font-weight:800; margin:0 0 8px;">📌 كلمات تحتاج مراجعة</p>
+    ${ w.length ? `<div style="display:flex; flex-wrap:wrap; gap:8px;">${w.map(x=>`<span class="stat-pill eng">${x}</span>`).join('')}</div>` : `<p style="color:#6b7a68; margin:0;">لا توجد كلمات تحتاج مراجعة حاليًا 👏</p>`}
+  </div>
+  `;
+};
+
+SCREENS.achievements = () => {
+  return `
+  <div class="topbar"><button class="back-btn" data-nav="home">➜</button><div></div></div>
+  <div class="hero"><h1>🏆 الإنجازات</h1></div>
+  <div class="section-card">
+    <div class="badge-grid">
+      ${WORLD_ORDER.map(wk=>{
+        const meta = BADGE_META[wk];
+        const earned = state.progress.badges.includes(wk);
+        return `<div class="badge ${earned?'earned':''}">${meta.ic}<span class="bl">${meta.label}</span></div>`;
+      }).join('')}
+    </div>
+  </div>
+  `;
+};
+
+SCREENS.rewards = () => `
+  <div class="topbar"><button class="back-btn" data-nav="home">➜</button><div></div></div>
+  <div class="hero"><h1>🎒 مكافآتي</h1><p>استخدم عملاتك لتزيين شخصيتك</p></div>
+  <div class="section-card" style="text-align:center;">
+    <span style="font-size:70px;">${state.profile.avatar}</span>
+    <p style="font-weight:800; margin-top:6px;">🪙 لديك ${state.progress.coins} عملة</p>
+    <div class="avatar-grid" style="margin-top:10px;">
+      ${AVATARS.map(a=>`<div class="avatar-opt ${state.profile.avatar===a?'sel':''}" data-shopav="${a}">${a}</div>`).join('')}
+    </div>
+    <p style="color:#6b7a68; font-size:13px; margin-top:10px;">اضغط على شخصية لتبديل مظهرك (مجانًا حاليًا)</p>
+  </div>
+`;
+
+SCREENS.profile = () => `
+  <div class="topbar"><button class="back-btn" data-nav="home">➜</button><div></div></div>
+  <div class="hero">
+    <span class="buddy">${state.profile.avatar}</span>
+    <h1>${state.profile.name}</h1>
+    <p>المستوى: ${["مبتدئ","أساسي","متوسط"][state.profile.level]}</p>
+  </div>
+  <div class="section-card">
+    <div class="level-row">
+      ${["مبتدئ","أساسي","متوسط"].map((l,i)=>`<div class="level-opt ${state.profile.level===i?'sel':''}" data-setlv="${i}">${l}</div>`).join('')}
+    </div>
+  </div>
+  <div style="padding:0 18px;">
+    <button class="btn btn-sky btn-wide" data-nav="parentGate">👨‍👩‍👧 منطقة ولي الأمر</button>
+  </div>
+`;
+
+SCREENS.parentGate = () => `
+  <div class="topbar"><button class="back-btn" data-nav="profile">➜</button><div></div></div>
+  <div class="parent-lock">
+    <span style="font-size:50px;">🔒</span>
+    <h2>منطقة ولي الأمر</h2>
+    <p>هذا القسم مخصص لولي الأمر لمتابعة تقدم الطفل.</p>
+    <p style="margin-bottom:20px;">للمتابعة، أجب: كم حاصل 7 × 8؟</p>
+    <input id="parentAnswer" class="field" placeholder="الإجابة" style="max-width:180px; text-align:center;">
+    <button class="btn btn-forest btn-wide" id="parentCheck" style="max-width:220px; margin:10px auto;">دخول</button>
+  </div>
+`;
+
+SCREENS.parentDash = () => {
+  const totalWords = WORLD_ORDER.reduce((s,w)=>s+VOCAB[w].words.length,0);
+  const learned = Object.keys(state.progress.wordStats).length;
+  const w = weakWords();
+  return `
+  <div class="topbar"><button class="back-btn" data-nav="profile">➜</button><div></div></div>
+  <div class="hero"><h1>لوحة ولي الأمر</h1><p>متابعة تقدم ${state.profile.name}</p></div>
+  <div class="section-card">
+    <div class="prog-line"><span class="prog-label">الكلمات المتعلَّمة</span><span>${learned} / ${totalWords}</span></div>
+    <div class="prog-line"><span class="prog-label">النجوم</span><span>⭐ ${state.progress.stars}</span></div>
+    <div class="prog-line"><span class="prog-label">العملات</span><span>🪙 ${state.progress.coins}</span></div>
+    <div class="prog-line"><span class="prog-label">الأوسمة المكتسبة</span><span>${state.progress.badges.length} / ${WORLD_ORDER.length}</span></div>
+  </div>
+  <div class="section-card">
+    <p style="font-weight:800; margin:0 0 8px;">نقاط تحتاج تدعيمًا</p>
+    ${ w.length ? `<div style="display:flex; flex-wrap:wrap; gap:8px;">${w.map(x=>`<span class="stat-pill eng">${x}</span>`).join('')}</div>` : `<p style="color:#6b7a68; margin:0;">أداء ممتاز، لا توجد نقاط ضعف حاليًا 👏</p>`}
+  </div>
+  <div class="section-card">
+    <p style="font-weight:800; margin:0 0 8px;">نصيحة</p>
+    <p style="margin:0; color:#5b6a58; font-size:14px;">شجّع طفلك على اللعب 10-15 دقيقة يوميًا لأفضل النتائج، وراجع معه الكلمات المذكورة أعلاه.</p>
+  </div>
+`;
+};
+
+/* =========================================================
+   NAVIGATION + INTERACTIONS
+   ========================================================= */
+function goto(screen){ state.screen = screen; render(); }
+
+function afterRender(){
+  document.querySelectorAll("[data-nav]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const target = el.getAttribute("data-nav");
+      if(target==="map"){ state.gameData=null; }
+      goto(target);
+    });
+  });
+
+  if(state.screen==="home"){
+    const ib = document.getElementById("installBtn");
+    if(ib) ib.addEventListener("click", triggerInstall);
+  }
+
+  if(state.screen==="createProfile"){
+    document.querySelectorAll("[data-av]").forEach(el=>el.addEventListener("click",()=>{ state.tmpAvatar = el.getAttribute("data-av"); render(); }));
+    document.querySelectorAll("[data-lv]").forEach(el=>el.addEventListener("click",()=>{ state.tmpLevel = parseInt(el.getAttribute("data-lv")); render(); }));
+    document.getElementById("soundTestBtn").addEventListener("click", ()=>{
+      if(!('speechSynthesis' in window)){
+        document.getElementById("soundHint").textContent = "الصوت غير مدعوم في هذا المتصفح. جرّب متصفح Chrome أو Safari.";
+        document.getElementById("soundHint").style.color = "var(--coral)";
+        return;
+      }
+      speak("Hello! Let's learn English!");
+      document.getElementById("soundHint").textContent = "هل سمعت الصوت؟ إن لم تسمع شيئًا، افتح الملف في متصفح آخر.";
+    });
+    document.getElementById("startBtn").addEventListener("click", ()=>{
+      const name = document.getElementById("nameInput").value.trim() || "بطل";
+      state.profile = { name, avatar: state.tmpAvatar || AVATARS[0], level: state.tmpLevel ?? 0 };
+      persist();
+      goto("home");
+    });
+  }
+
+  if(state.screen==="map"){
+    document.querySelectorAll("[data-world]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const wk = el.getAttribute("data-world");
+        if(el.hasAttribute("data-review")){
+          startReview(wk);
+        } else {
+          const si = parseInt(el.getAttribute("data-stage"));
+          startStageScreen(wk, si);
+          state.screen = "learnWord";
+          render();
+        }
+      });
+    });
+  }
+
+  if(state.screen==="learnWord"){
+    const sb = document.getElementById("speakBtn");
+    const w = VOCAB[state.currentWorld].words[state.currentStageIdx];
+    if(sb) sb.addEventListener("click", ()=>speak(w.en));
+    speak(w.en);
+    document.getElementById("toGameBtn").addEventListener("click", ()=>{
+      buildGame();
+      goto("game");
+    });
+  }
+
+  if(state.screen==="game"){
+    wireGameInteractions();
+  }
+
+  if(state.screen==="stageComplete"){
+    document.querySelectorAll("[data-nav]").forEach(el=>el.addEventListener("click",()=>{ state.gameData=null; }));
+    document.getElementById("continueBtn").addEventListener("click", ()=>{
+      state.gameData=null; goto("map");
+    });
+  }
+
+  if(state.screen==="rewards"){
+    document.querySelectorAll("[data-shopav]").forEach(el=>el.addEventListener("click",()=>{
+      state.profile.avatar = el.getAttribute("data-shopav"); persist(); render();
+    }));
+  }
+
+  if(state.screen==="profile"){
+    document.querySelectorAll("[data-setlv]").forEach(el=>el.addEventListener("click",()=>{
+      state.profile.level = parseInt(el.getAttribute("data-setlv")); persist(); render();
+    }));
+  }
+
+  if(state.screen==="parentGate"){
+    document.getElementById("parentCheck").addEventListener("click", ()=>{
+      const val = document.getElementById("parentAnswer").value.trim();
+      if(val === "56"){ goto("parentDash"); }
+      else { document.getElementById("parentAnswer").style.boxShadow = "inset 0 0 0 2px var(--coral)"; }
+    });
+  }
+}
+
+function startReview(wk){
+  // build a review stage using all words of the world, focusing on weak ones if any
+  state.currentWorld = wk;
+  state.currentStageIdx = 0; // reuse mechanics loosely
+  const worldWeak = VOCAB[wk].words.filter(w=>weakWords().includes(w.en));
+  const chosen = worldWeak.length ? worldWeak[0] : VOCAB[wk].words[0];
+  state.currentStageIdx = VOCAB[wk].words.findIndex(w=>w.en===chosen.en);
+  buildGame();
+  goto("game");
+}
+
+function finishAnswer(isCorrect){
+  const gd = state.gameData;
+  gd.attempts++;
+  recordWord(gd.target.en, !isCorrect);
+  const fb = document.getElementById("feedback");
+  if(isCorrect){
+    if(fb){ fb.textContent = "🎉 Great!"; fb.className="feedback good"; }
+    speak(gd.target.en);
+    setTimeout(()=>{
+      const key = stageKey(state.currentWorld, state.currentStageIdx);
+      const stars = gd.attempts<=1?3:(gd.attempts===2?2:1);
+      const prevStars = state.progress.stageStars[key]||0;
+      if(stars>prevStars){
+        state.progress.stars += (stars-prevStars);
+        state.progress.stageStars[key]=stars;
+      }
+      state.progress.coins += 5*stars;
+      if(allStagesDone(state.currentWorld) && !state.progress.badges.includes(state.currentWorld)){
+        state.progress.badges.push(state.currentWorld);
+      }
+      persist();
+      goto("stageComplete");
+    }, 900);
+  } else {
+    if(fb){ fb.textContent = "Try Again!"; fb.className="feedback bad"; }
+    speak(gd.target.en);
+  }
+}
+
+function wireGameInteractions(){
+  const gd = state.gameData;
+  const sb = document.getElementById("speakBtn");
+  if(sb) sb.addEventListener("click", ()=>speak(gd.target.en));
+  if(gd.type==="listen") speak(gd.target.en);
+
+  if(gd.type==="choose" || gd.type==="listen"){
+    document.querySelectorAll(".choice-card").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        if(gd.locked) return;
+        const ans = el.getAttribute("data-ans");
+        const correct = ans === gd.target.en;
+        el.classList.add(correct?"correct":"wrong");
+        if(!correct){ gd.locked=true; setTimeout(()=>{gd.locked=false; el.classList.remove("wrong");},700); }
+        finishAnswer(correct);
+      });
+    });
+  }
+
+  if(gd.type==="match"){
+    document.querySelectorAll("[data-mw]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const en = el.getAttribute("data-mw");
+        if(gd.matched.includes(en)) return;
+        gd.selWord = en; checkMatch();
+        render();
+      });
+    });
+    document.querySelectorAll("[data-me]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const en = el.getAttribute("data-me");
+        if(gd.matched.includes(en)) return;
+        gd.selEmoji = en; checkMatch();
+        render();
+      });
+    });
+  }
+
+  if(gd.type==="spell"){
+    document.querySelectorAll("[data-lid]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const id = parseInt(el.getAttribute("data-lid"));
+        const letter = gd.letters.find(l=>l.id===id);
+        if(letter.used) return;
+        letter.used = true;
+        gd.slots.push(letter);
+        render();
+        checkSpell();
+      });
+    });
+  }
+
+  if(gd.type==="sentence"){
+    document.querySelectorAll("[data-cid]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const id = parseInt(el.getAttribute("data-cid"));
+        const chip = gd.chips.find(c=>c.id===id);
+        if(chip.used) return;
+        chip.used = true;
+        gd.slots.push(chip);
+        render();
+        checkSentence();
+      });
+    });
+  }
+}
+
+function checkMatch(){
+  const gd = state.gameData;
+  if(gd.selWord && gd.selEmoji){
+    if(gd.selWord === gd.selEmoji){
+      gd.matched.push(gd.selWord);
+      recordWord(gd.selWord, false);
+      if(gd.matched.length === gd.matchWords.length){
+        gd.attempts = gd.attempts||0;
+        finishAnswer(true);
+      }
+    } else {
+      recordWord(gd.selWord, true);
+      gd.attempts = (gd.attempts||0)+1;
+    }
+    gd.selWord = null; gd.selEmoji = null;
+  }
+}
+
+function checkSpell(){
+  const gd = state.gameData;
+  const current = gd.slots.map(s=>s.l).join("");
+  const target = gd.target.en.toUpperCase();
+  if(current.length === target.length){
+    if(current === target){ finishAnswer(true); }
+    else {
+      gd.attempts++;
+      const fb = document.getElementById("feedback");
+      if(fb){ fb.textContent="Try Again!"; fb.className="feedback bad"; }
+      setTimeout(()=>{
+        gd.letters.forEach(l=>l.used=false);
+        gd.slots = [];
+        render();
+      }, 800);
+    }
+  }
+}
+
+function checkSentence(){
+  const gd = state.gameData;
+  if(gd.slots.length === gd.sentence.words.length){
+    const built = gd.slots.map(s=>s.w).join(" ");
+    const target = gd.sentence.words.join(" ");
+    if(built === target){
+      gd.target = {en: target}; // for recordWord/finishAnswer compatibility
+      finishAnswer(true);
+    } else {
+      gd.attempts++;
+      const fb = document.getElementById("feedback");
+      if(fb){ fb.textContent="Try Again!"; fb.className="feedback bad"; }
+      setTimeout(()=>{
+        gd.chips.forEach(c=>c.used=false);
+        gd.slots = [];
+        render();
+      }, 800);
+    }
+  }
+}
+
+/* need learnWord as its own screen key */
+SCREENS.learnWord = renderLearnWord;
+
+/* =========================================================
+   PWA: service worker + install prompt
+   ========================================================= */
+let deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  state.canInstall = true;
+  if(state.screen === "home") render();
+});
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  state.canInstall = false;
+  if(state.screen === "home") render();
+});
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(()=>{});
+  });
+}
+async function triggerInstall(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  state.canInstall = false;
+  render();
+}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+(async function boot(){
+  await loadPersisted();
+  if(state.profile){ goto("home"); } else { goto("createProfile"); }
+})();
+</script>
+</body>
+</html>
